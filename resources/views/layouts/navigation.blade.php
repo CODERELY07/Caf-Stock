@@ -5,16 +5,78 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
+                    @php
+                        $dashboardRoute = match(Auth::user()->role) {
+                            'admin' => route('admin.dashboard'),
+                            'staff' => route('staff.dashboard'),
+                            'cordinator' => route('cordinator.dashboard'),
+                            'auditor' => route('auditor.dashboard'),
+                            default => route('dashboard')
+                        };
+                    @endphp
+                    <a href="{{ $dashboardRoute }}">
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
+                        @if(Auth::user()->role === 'admin')
+                        <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                            {{ __('Admin Dashboard') }}
+                        </x-nav-link>
+                        <!-- Add more admin-specific links -->
+                        <x-nav-link :href="route('admin.users')" :active="request()->routeIs('admin.users')">
+                            {{ __('Manage Users') }}
+                        </x-nav-link>
+                    @elseif(Auth::user()->role === 'staff')
+                        <x-nav-link :href="route('staff.dashboard')" :active="request()->routeIs('staff.dashboard')">
+                            {{ __('Staff Dashboard') }}
+                        </x-nav-link>
+                        <!-- Tasks Dropdown -->
+                        <div class="sm:flex sm:items-center">
+                            <x-dropdown align="left" width="48">
+                                <x-slot name="trigger">
+                                    <button class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 dark:text-gray-400 transition duration-150 ease-in-out ">
+                                        <div>{{ __('My Tasks') }}</div>
+                                        <div class="ms-1">
+                                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </button>
+                                </x-slot>
+
+                                <x-slot name="content">
+                                    <x-dropdown-link >
+                                        {{ __('Pending Tasks') }}
+                                    </x-dropdown-link>
+                                    <x-dropdown-link >
+                                        {{ __('Completed Tasks') }}
+                                    </x-dropdown-link>
+                                    <x-dropdown-link>
+                                        {{ __('Create Task') }}
+                                    </x-dropdown-link>
+                                </x-slot>
+                            </x-dropdown>
+                        </div>
+                    @elseif(Auth::user()->role === 'cordinator')
+                        <x-nav-link :href="route('cordinator.dashboard')" :active="request()->routeIs('cordinator.dashboard')">
+                            {{ __('Coordinator Dashboard') }}
+                        </x-nav-link>
+                        <!-- Add more coordinator-specific links -->
+                        <x-nav-link :href="route('cordinator.projects')" :active="request()->routeIs('cordinator.projects')">
+                            {{ __('Projects') }}
+                        </x-nav-link>
+                    @elseif(Auth::user()->role === 'auditor')
+                        <x-nav-link :href="route('auditor.dashboard')" :active="request()->routeIs('auditor.dashboard')">
+                            {{ __('Auditor Dashboard') }}
+                        </x-nav-link>
+                        <!-- Add more auditor-specific links -->
+                        <x-nav-link :href="route('auditor.reports')" :active="request()->routeIs('auditor.reports')">
+                            {{ __('Audit Reports') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -23,7 +85,7 @@
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+                            <div>{{ Auth::user()->name }} ({{ ucfirst(Auth::user()->role) }})</div>
 
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -67,16 +129,34 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
+            @if(Auth::user()->role === 'admin')
+                <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                    {{ __('Admin Dashboard') }}
+                </x-responsive-nav-link>
+            @elseif(Auth::user()->role === 'staff')
+                <x-responsive-nav-link :href="route('staff.dashboard')" :active="request()->routeIs('staff.dashboard')">
+                    {{ __('Staff Dashboard') }}
+                </x-responsive-nav-link>
+            @elseif(Auth::user()->role === 'cordinator')
+                <x-responsive-nav-link :href="route('cordinator.dashboard')" :active="request()->routeIs('cordinator.dashboard')">
+                    {{ __('Coordinator Dashboard') }}
+                </x-responsive-nav-link>
+            @elseif(Auth::user()->role === 'auditor')
+                <x-responsive-nav-link :href="route('auditor.dashboard')" :active="request()->routeIs('auditor.dashboard')">
+                    {{ __('Auditor Dashboard') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                <div class="font-medium text-base text-gray-800 dark:text-gray-200">
+                    {{ Auth::user()->name }}
+                </div>
+                <div class="font-medium text-sm text-gray-500">
+                    {{ Auth::user()->email }} • {{ ucfirst(Auth::user()->role) }}
+                </div>
             </div>
 
             <div class="mt-3 space-y-1">
